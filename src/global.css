@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-canvas: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #293548;
+  --color-border: #334155;
+  --color-primary: #38bdf8;
+  --color-primary-dark: #0ea5e9;
+  --color-fg: #f1f5f9;
+  --color-fg-muted: #94a3b8;
+  --color-error: #f87171;
+  --color-error-bg: #1f1315;
+
+  --animate-shimmer: shimmer 1.4s infinite;
+  --animate-slide-up: slideUp 0.25s ease both;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@layer base {
+  body {
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    line-height: 1.6;
+    min-height: 100dvh;
+  }
+
+  button {
+    outline: none;
+  }
+
+  button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary);
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Suppress webkit search clear button */
+  input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+}
