@@ -9,8 +9,7 @@ export function Toaster() {
 
   return (
     <div
-      className="fixed z-[100] flex flex-col-reverse gap-2 items-center"
-      style={{ bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)' }}
+      className="fixed z-[100] flex flex-col-reverse gap-2 items-center top-6 left-1/2 -translate-x-1/2"
       aria-label="Notifications"
     >
       {toasts.map((toast) => (
