@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(npx vitest:*)",
+      "Bash(xargs grep:*)",
+      "Bash(find c:/Users/User/Desktop/z1mak-cv-queue -name resume* -o -name *resume*)",
+      "WebSearch",
+      "WebFetch(domain:arc.dev)",
+      "WebFetch(domain:hnhiring.com)",
+      "WebFetch(domain:www.remoterocketship.com)",
+      "WebFetch(domain:reactjobs.io)",
+      "WebFetch(domain:wellfound.com)",
+      "WebFetch(domain:careers.datadoghq.com)",
+      "WebFetch(domain:djinni.co)",
+      "WebFetch(domain:remoteok.com)",
+      "WebFetch(domain:www.workingnomads.com)",
+      "WebFetch(domain:meetfrank.com)",
+      "WebFetch(domain:jobs.dou.ua)",
+      "WebFetch(domain:weworkremotely.com)",
+      "WebFetch(domain:himalayas.app)"
+    ]
+  }
+}

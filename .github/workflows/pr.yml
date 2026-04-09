@@ -1,0 +1,144 @@
+# CI Pipeline — Weather Forecast App
+#
+# Runs on every pull request targeting the master branch.
+# Pipeline order: install → lint → type-check → unit tests → e2e tests
+#
+# Design decisions:
+#   - pnpm store is cached by the hash of pnpm-lock.yaml so the cache is
+#     invalidated automatically whenever dependencies change.
+#   - Playwright browsers are cached separately from the pnpm store because
+#     they are large binaries stored outside the pnpm store directory.
+#   - The E2E step sets CI=true, which causes playwright.config.ts to enable
+#     retries (2) and limit workers (1), and to start the dev server via the
+#     built-in webServer option — no separate server step is needed.
+#   - TypeScript is checked with `pnpm exec tsc --noEmit` because the project
+#     has no dedicated `tsc` npm script.
+
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: Lint, Type-Check, Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # 1. Source code
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # 2. Toolchain — Node.js + pnpm
+      #    setup-node handles both Node installation and caching the pnpm store
+      #    when `cache: pnpm` is supplied alongside the pnpm version.
+      # -----------------------------------------------------------------------
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          # Resolves the version from the "packageManager" field in package.json
+          # if present, otherwise falls back to the latest pnpm v9 release.
+          # Pinning to v9 keeps the lockfileVersion (9.0) consistent.
+          version: 9
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # Caches the pnpm content-addressable store (~/.local/share/pnpm/store).
+          # The cache key includes the OS and the full lockfile hash, so it is
+          # invalidated whenever any dependency version changes.
+          cache: pnpm
+
+      # -----------------------------------------------------------------------
+      # 3. Dependencies
+      #    --frozen-lockfile ensures the lockfile is never implicitly updated,
+      #    which would indicate a mismatch between package.json and the lockfile.
+      # -----------------------------------------------------------------------
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # -----------------------------------------------------------------------
+      # 4. Lint
+      #    eslint is configured with --max-warnings 0, so any warning is a
+      #    build failure — this keeps the codebase warning-free.
+      # -----------------------------------------------------------------------
+      - name: Lint check
+        run: pnpm run lint
+
+      # -----------------------------------------------------------------------
+      # 5. TypeScript type-check
+      #    The project has no dedicated `tsc` npm script; we invoke the local
+      #    TypeScript compiler directly. --noEmit validates types without
+      #    producing output files.
+      # -----------------------------------------------------------------------
+      - name: TypeScript type-check
+        run: pnpm exec tsc --noEmit
+
+      # -----------------------------------------------------------------------
+      # 6. Unit tests (Vitest)
+      #    `vitest run` executes a single, non-interactive test pass.
+      # -----------------------------------------------------------------------
+      - name: Run unit tests
+        run: pnpm run test
+
+      # -----------------------------------------------------------------------
+      # 7. Playwright browser cache
+      #    Playwright downloads browser binaries to a path that is separate from
+      #    the pnpm store, so they need their own cache entry. The cache key is
+      #    tied to the Playwright package version so browsers are re-downloaded
+      #    only when the version bumps.
+      # -----------------------------------------------------------------------
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-browsers-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        # Only install browsers on a full cache miss. --with-deps also installs
+        # the OS-level system dependencies required by each browser (e.g. libglib).
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system dependencies
+        # On a cache hit the binaries are restored, but the OS packages (shared
+        # libraries) are not cached — install only those.
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # -----------------------------------------------------------------------
+      # 8. E2E tests (Playwright)
+      #    CI=true is forwarded so playwright.config.ts activates CI mode:
+      #      - forbidOnly: prevents .only() calls from accidentally passing
+      #      - retries: 2 retries per flaky test
+      #      - workers: 1 to avoid port conflicts on the shared runner
+      #    The webServer option in playwright.config.ts starts `pnpm dev`
+      #    automatically before the suite runs, so no explicit server step is
+      #    required here.
+      # -----------------------------------------------------------------------
+      - name: Run E2E tests
+        run: pnpm run test:e2e
+        env:
+          CI: true
+
+      # -----------------------------------------------------------------------
+      # 9. Upload Playwright HTML report on failure
+      #    The report is retained for 7 days so failures can be investigated
+      #    without re-running the pipeline.
+      # -----------------------------------------------------------------------
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
