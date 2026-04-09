@@ -14,7 +14,7 @@
 #   - TypeScript is checked with `pnpm exec tsc --noEmit` because the project
 #     has no dedicated `tsc` npm script.
 
-name: CI
+name: PR
 
 on:
   pull_request:
@@ -91,17 +91,20 @@ jobs:
       # 7. Playwright browser cache
       #    Playwright downloads browser binaries to a path that is separate from
       #    the pnpm store, so they need their own cache entry. The cache key is
-      #    tied to the Playwright package version so browsers are re-downloaded
-      #    only when the version bumps.
+      #    tied to the exact Playwright version so browsers are re-downloaded
+      #    only when the Playwright version bumps — not when unrelated JS deps
+      #    change.
       # -----------------------------------------------------------------------
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-browsers-${{ runner.os }}-
+          key: playwright-browsers-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright browsers
         # Only install browsers on a full cache miss. --with-deps also installs
