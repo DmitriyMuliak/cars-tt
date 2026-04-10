@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type SubmitEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { useIsFetching } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 
@@ -37,12 +37,7 @@ export function SearchBar() {
   function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     submit();
-  }
-
-  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
-      submit();
-    }
+    setValue('');
   }
 
   function submit() {
@@ -76,7 +71,6 @@ export function SearchBar() {
             placeholder="Search for a city…"
             value={value}
             onChange={handleChange}
-            onKeyDown={handleKeyDown}
             aria-label="City name"
             autoComplete="off"
             autoCorrect="off"

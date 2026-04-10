@@ -2,6 +2,9 @@
 
 A production-quality weather forecast application built with React and TypeScript. Search any city to see live weather data — temperature, conditions, wind, and humidity — with a persistent, undoable search history.
 
+![Weather Forecast App Preview](./docs/preview.png)
+**[Live Demo](https://dmitriymuliak.github.io/cars-tt/)**
+
 ## Prerequisites
 
 | Tool | Version |
@@ -18,7 +21,7 @@ npm install -g pnpm
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url>
+git clone https://github.com/DmitriyMuliak/cars-tt.git
 cd cars-tt
 
 # 2. Copy environment file and add your API key
@@ -52,7 +55,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Architecture
 
-The project uses a **feature-based** folder structure. Code is grouped by domain feature first, with shared infrastructure extracted into `shared/`. Path alias `@/` maps to `src/`.
+The project uses a **feature-based** folder structure. Code is grouped by domain feature first, with shared infrastructure extracted into `shared/`.
 
 ```
 src/
@@ -101,6 +104,9 @@ The `SearchHistory` list will re-render on every history change regardless of wh
 
 Context is well-suited for genuinely static or rarely-changing values (theme, locale). For mutable global state that is written from multiple components, Context leads to prop-drilling, context-splitting boilerplate, or large provider trees — all of which Zustand avoids with its flat, store-based API.
 
+### Why TanStack Query for a single API call?
+Implementing caching, deduplication, and loading/error state manually with `useEffect` + `useState` is error-prone boilerplate. TanStack Query gives these for free: identical concurrent requests are deduplicated, results are cached for 5 minutes so navigating back to a searched city costs zero network requests, and loading/error states are derived automatically. The `onSuccess` callback also provides a clean integration point to write into Zustand (`addToHistory`) without coupling the component to side-effect logic.
+
 ### Why Container Queries instead of Media Queries?
 The app layout uses `@container` queries so components respond to *their own available width*, not the viewport. This makes `WeatherCard` and `SearchHistory` genuinely reusable: drop them into any column width and they reflow correctly without needing new breakpoints.
 
@@ -109,7 +115,7 @@ The `ApiError` class carries an HTTP `statusCode`. The UI distinguishes between 
 
 ### Testing strategy
 
-- **Unit tests** (Vitest + RTL) cover all store logic, hooks, and component rendering at 80%+ statement coverage. Network calls are intercepted via **MSW** — no `fetch` mocking, no module mocking of React Query.
+- **Unit tests** (Vitest + RTL) cover all store logic, hooks, and component rendering at 90%+ statement coverage. Network calls are intercepted via **MSW** — no `fetch` mocking, no module mocking of React Query.
 - **E2E tests** (Playwright) cover the full user journey: search, history interaction, undo, and error states.
 
 ## Environment variables
