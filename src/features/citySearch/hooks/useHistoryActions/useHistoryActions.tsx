@@ -4,7 +4,7 @@ import { TOAST_DURATION_MS } from '@/shared/store/toastStore';
 
 import { UndoToastContent } from '../../components/UndoToastContent';
 
-const UNDO_TOAST_ID = 'undo-remove';
+const REMOVE_TOAST_ID = 'undo-remove';
 
 export function useHistoryActions() {
   const removeFromHistory = useWeatherStore((s) => s.removeFromHistory);
@@ -12,28 +12,28 @@ export function useHistoryActions() {
   const undoRemove = useWeatherStore((s) => s.undoRemove);
   const { open, close } = useToast();
 
-  function closeUndoToast() {
-    close(UNDO_TOAST_ID);
+  function closeRemoveItemToast() {
+    close(REMOVE_TOAST_ID);
     undoRemove();
   }
 
-  function showUndoToast(label: string) {
+  function showRemoveItemToast(label: string) {
     open(label, {
-      id: UNDO_TOAST_ID,
+      id: REMOVE_TOAST_ID,
       duration: TOAST_DURATION_MS,
-      component: <UndoToastContent label={label} onClick={closeUndoToast} />,
+      component: <UndoToastContent label={label} onClick={closeRemoveItemToast} />,
     });
   }
 
   function removeCity(city: string) {
     removeFromHistory(city);
-    showUndoToast(`"${city}" removed`);
+    showRemoveItemToast(`"${city}" removed`);
   }
 
   function clearAll(count: number) {
-    clearHistory();
     const label = count === 1 ? '1 city removed' : `${count} cities removed`;
-    showUndoToast(label);
+    clearHistory();
+    showRemoveItemToast(label);
   }
 
   return { removeCity, clearAll };
