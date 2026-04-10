@@ -41,8 +41,8 @@ export function Toast({
   return (
     <div
       className={`flex items-center gap-4 bg-surface border ${borderColor} rounded-xl px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.5)] top-0 right-0 min-w-[260px] max-w-[min(480px,calc(100vw-2rem))] overflow-hidden animate-slide-up relative`}
-      role="status"
-      aria-live="polite"
+      role={type === 'error' ? 'alert' : 'status'}
+      aria-live={type === 'error' ? 'assertive' : 'polite'}
       aria-atomic="true"
       aria-label={message}
     >

@@ -15,7 +15,7 @@ name: Deploy
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 # Allow one concurrent deployment. If a new push lands while a deployment

@@ -106,13 +106,17 @@ Browser binaries (Chromium, ~300 MB) are stored separately from the pnpm
 store because Playwright downloads them to `~/.cache/ms-playwright`, not
 inside `node_modules`.
 
-Cache key: `playwright-browsers-<OS>-<hash of pnpm-lock.yaml>`
+The Playwright version is extracted first:
+```bash
+pnpm exec playwright --version | awk '{print $2}'
+```
 
-When only non-Playwright deps change the old browsers cache is reused via
-the `restore-keys` fallback:
-```
-playwright-browsers-<OS>-
-```
+Cache key: `playwright-browsers-<OS>-<playwright-version>`
+
+This means browsers are re-downloaded **only when the Playwright version
+changes**, not when unrelated JS dependencies are added or updated.
+Previously the key used `hashFiles('pnpm-lock.yaml')`, which caused
+unnecessary cache misses on every JS dependency change.
 
 ---
 
@@ -144,7 +148,23 @@ the large browser binary.
 
 ---
 
-### Step 11 — Run E2E tests
+### Step 11 — Production build
+
+```bash
+pnpm build
+```
+
+Compiles TypeScript and bundles the app with Vite into `dist/`.
+`VITE_OPENWEATHER_API_KEY` is injected at build time so the production
+bundle contains the real key — the same artifact that gets deployed to
+GitHub Pages.
+
+Running E2E tests against the production build (instead of the dev server)
+ensures tests exercise the exact code that ships to users.
+
+---
+
+### Step 12 — Run E2E tests
 
 ```bash
 pnpm run test:e2e
@@ -154,11 +174,11 @@ With `CI=true` the `playwright.config.ts` activates:
 - `forbidOnly: true` — a `.only()` left in code fails the suite
 - `retries: 2` — each test gets up to 2 retries to survive flakiness
 - `workers: 1` — serialises tests to avoid port conflicts on the shared runner
-- `webServer` — starts `pnpm dev` automatically; no explicit server step needed
+- `webServer` — starts `pnpm preview` which serves the pre-built `dist/`; no separate server step needed
 
 ---
 
-### Step 12 — Upload Playwright report (on failure)
+### Step 13 — Upload Playwright report (on failure)
 
 ```yaml
 if: failure()

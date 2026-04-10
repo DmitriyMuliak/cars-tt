@@ -19,7 +19,6 @@ const cityRules = [
 
 export function SearchBar() {
   const [value, setValue] = useState('');
-  const [validationError, setValidationError] = useState('');
 
   const { open } = useToast();
   const setActiveCity = useWeatherStore((s) => s.setActiveCity);
@@ -52,13 +51,11 @@ export function SearchBar() {
       showErrorToast(error);
       return;
     }
-    setValidationError('');
     setActiveCity(value.trim());
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setValue(e.target.value);
-    if (validationError) setValidationError('');
   }
 
   return (
@@ -81,8 +78,6 @@ export function SearchBar() {
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             aria-label="City name"
-            aria-describedby={validationError ? 'search-error' : undefined}
-            aria-invalid={validationError ? true : false}
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
@@ -106,11 +101,6 @@ export function SearchBar() {
           )}
         </Button>
       </form>
-      {validationError && (
-        <p id="search-error" className="mt-2 text-sm text-error" role="alert">
-          {validationError}
-        </p>
-      )}
     </div>
   );
 }
