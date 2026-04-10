@@ -119,14 +119,23 @@ jobs:
         run: pnpm exec playwright install-deps chromium
 
       # -----------------------------------------------------------------------
-      # 8. E2E tests (Playwright)
+      # 8. Production build for E2E
+      #    Builds the app so that E2E tests run against the production bundle
+      #    (same artifact as deploy) rather than the dev server.
+      # -----------------------------------------------------------------------
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_OPENWEATHER_API_KEY: ${{ secrets.VITE_OPENWEATHER_API_KEY }}
+
+      # -----------------------------------------------------------------------
+      # 9. E2E tests (Playwright)
       #    CI=true is forwarded so playwright.config.ts activates CI mode:
       #      - forbidOnly: prevents .only() calls from accidentally passing
       #      - retries: 2 retries per flaky test
       #      - workers: 1 to avoid port conflicts on the shared runner
-      #    The webServer option in playwright.config.ts starts `pnpm dev`
-      #    automatically before the suite runs, so no explicit server step is
-      #    required here.
+      #    The webServer option in playwright.config.ts starts `pnpm preview`
+      #    automatically before the suite runs, serving the production build.
       # -----------------------------------------------------------------------
       - name: Run E2E tests
         run: pnpm run test:e2e
