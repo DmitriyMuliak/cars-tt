@@ -60,30 +60,29 @@ The project uses a **feature-based** folder structure. Code is grouped by domain
 ```
 src/
   features/
-    citySearch/
-      components/   # SearchBar, WeatherCard, SearchHistory, HistoryItem, UndoToastContent
-      hooks/        # useWeatherQuery — TanStack Query wrapper
-                    # useHistoryActions — remove/clear/undo orchestration
-      store/        # citySearchStore — history + activeCity + undo buffer
-  shared/
-    api/            # fetchWeather, ApiError, getWeatherIconUrl
+    citySearch/         # Vertical slice — everything the feature owns lives here:
+      components/       #   UI components (presentational + container)
+      hooks/            #   Data fetching and domain orchestration logic
+      store/            #   Feature-scoped state (history, active city, undo buffer)
+
+  shared/               # Horizontal layer — used by more than one feature
+    api/                #   HTTP client, error model, and asset helpers
     components/
-      ui/
-        Button/     # Reusable button with variants (primary, ghost, ghost-danger, …)
-        Toast/      # Single toast item with auto-dismiss timer
-      ErrorBoundary/
-      Toaster/      # Toast container (reads from toastStore)
-    config/         # getEnvVars — validates required env vars at startup
-    hooks/          # useToast — imperative toast trigger
-                    # useDelayedLoading — debounced loading flag
-    store/          # toastStore
-    types/          # Shared TypeScript interfaces (WeatherData, CityHistory, …)
-    utils/          # formValidator
-  test/             # Vitest global setup, MSW server, shared test utilities
-  App.tsx           # Root layout
-  main.tsx          # React + QueryClient bootstrap
+      ui/               #   Design-system primitives (Button, Toast) — no business logic
+      ErrorBoundary/    #   Catches render errors at the app boundary
+      Toaster/          #   Toast container driven by toastStore
+    config/             #   Environment variable validation at startup
+    hooks/              #   Cross-feature hooks (toast trigger, debounced loading flag)
+    store/              #   Infrastructure state that features read but don't own (toasts)
+    types/              #   Shared TypeScript interfaces — single source of truth for shapes
+    utils/              #   Pure functions with no framework dependencies
+
+  test/                 # Global test setup — MSW server, Vitest config, shared fixtures
+  App.tsx               # Root layout and provider tree
+  main.tsx              # React + QueryClient bootstrap
+
 tests/
-  e2e/              # Playwright specs (search, history, undo, error states)
+  e2e/                  # Playwright specs — full user journeys (search, history, undo, errors)
 ```
 
 ### State management
